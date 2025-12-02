@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Multi-Host Continuous Ping</title>
+    <style>
+        #pings {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1em;
+        }
+
+        .host-box {
+            background: #f8f8f8;
+            border: 1px solid #aaa;
+            font-family: 'Fira Mono', 'Consolas', 'Menlo', monospace;
+            min-width: 320px;
+            max-width: 390px;
+            min-height: 240px;
+            max-height: 400px;
+            padding: 0.5em 1em 1em 1em;
+            overflow: hidden;
+            margin-bottom: 1em;
+            flex: 1 1 340px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 1px 2px 6px #ccc;
+        }
+
+        .host-title {
+            font-weight: bold;
+            margin-bottom: 0.5em;
+            font-size: 1.1em;
+            color: #256;
+            letter-spacing: 0.5px;
+        }
+
+        .host-controls {
+            margin-bottom: 0.25em;
+        }
+
+        .host-result {
+            background: #222;
+            color: #e4ffac;
+            font-size: 0.98em;
+            flex: 1 1 auto;
+            margin-top: 0.25em;
+            margin-bottom: 0.2em;
+            border-radius: 4px;
+            padding: 0.75em;
+            overflow-y: auto;
+            white-space: pre;
+            /* preserve formatting and alignment */
+            font-family: inherit;
+            line-height: 1.25;
+            box-shadow: inset 0 0 4px #111a;
+        }
+
+        button {
+            font-size: 0.98em;
+            border-radius: 2px;
+            border: 1px solid #abc;
+            background: #e2f0ff;
+            margin-right: 0.3em;
+            cursor: pointer;
+        }
+
+        .exit-line {
+            color: #f8e071;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>DBOS Ping Checking</h2>
+    <div>
+        <input id="hosts" type="text" size="50"
+            placeholder="Enter hosts separated by comma (e.g. 8.8.8.8, google.com)" />
+        <button onclick="startMultiPing()">Start Pings</button>
+        <button onclick="stopAllPings()">Stop All</button>
+    </div>
+    <div id="pings"></div>
+    <script>
+        const pings = {}; // { host: { evtSource, div, stopped, resultPre } }
+
+        function startMultiPing() {
+            stopAllPings();
+            const hosts = document.getElementById('hosts').value.split(',').map(h => h.trim()).filter(Boolean);
+            if (hosts.length === 0) {
+                alert("Enter at least one host.");
+                return;
+            }
+            const pingArea = document.getElementById('pings');
+            pingArea.innerHTML = '';
+            hosts.forEach(host => addPingBox(host));
+        }
+
+        function addPingBox(host) {
+            // Create DOM box
+            const div = document.createElement('div');
+            div.className = "host-box";
+            div.innerHTML = `
+        <div class="host-title">${host}</div>
+        <div class="host-controls">
+          <button onclick="window.stopOnePing('${host}')">Stop</button>
+        </div>
+        <pre class="host-result" id="result-${host.replace(/[^a-zA-Z0-9]/g, '_')}"></pre>
+      `;
+            document.getElementById('pings').appendChild(div);
+            const resultPre = div.querySelector('.host-result');
+
+            // Start SSE ping
+            const evtSource = new EventSource(`http://localhost:3001/ping-stream?host=${encodeURIComponent(host)}`);
+            let stopped = false;
+            evtSource.onmessage = function (event) {
+                resultPre.textContent += event.data + '\n';
+                resultPre.scrollTop = resultPre.scrollHeight;
+            };
+            evtSource.addEventListener('end', function (event) {
+                printExitLine(resultPre, '[Exit: Ping process ended]');
+                stopOnePing(host, false);
+            });
+            evtSource.onerror = function () {
+                if (!stopped) printExitLine(resultPre, '[Exit: Ping connection closed]');
+                stopOnePing(host, false);
+            };
+            pings[host] = { evtSource, div, stopped: false, resultPre };
+        }
+
+        function stopOnePing(host, print = true) {
+            const p = pings[host];
+            if (p && p.evtSource) {
+                p.evtSource.close();
+                if (print && !p.stopped) printExitLine(p.resultPre, '[Exit: Ping stopped by user]');
+                p.stopped = true;
+            }
+        }
+        window.stopOnePing = stopOnePing;
+        function stopAllPings() {
+            Object.keys(pings).forEach(h => stopOnePing(h));
+        }
+
+        function printExitLine(targetPre, line) {
+            targetPre.innerHTML += `<span class="exit-line">${line}</span>\n`;
+            targetPre.scrollTop = targetPre.scrollHeight;
+        }
+    </script>
+</body>
+
+</html>
