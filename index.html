@@ -3,79 +3,117 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>Multi-Host Continuous Ping</title>
+    <title>Multi-Host Continuous Ping </title>
     <style>
+        body {
+            font-size: 1.3em;
+            font-family: 'Fira Mono', 'Consolas', 'Menlo', monospace;
+            background: #eaf4f7;
+            padding: 1.5em;
+        }
+
+        h2 {
+            font-size: 2em;
+            margin-bottom: 0.7em;
+            color: #264277;
+            text-align: center;
+        }
+
         #pings {
             display: flex;
             flex-wrap: wrap;
-            gap: 1em;
+            gap: 2em;
+            justify-content: center;
+            margin-top: 2em;
         }
 
         .host-box {
             background: #f8f8f8;
-            border: 1px solid #aaa;
-            font-family: 'Fira Mono', 'Consolas', 'Menlo', monospace;
-            min-width: 320px;
-            max-width: 390px;
-            min-height: 240px;
-            max-height: 400px;
-            padding: 0.5em 1em 1em 1em;
-            overflow: hidden;
-            margin-bottom: 1em;
-            flex: 1 1 340px;
+            border: 2px solid #678;
+            border-radius: 12px;
+            font-family: inherit;
+            min-width: 480px;
+            /* much wider */
+            max-width: 720px;
+            /* even more room */
+            min-height: 400px;
+            /* much taller */
+            max-height: 800px;
+            padding: 2.2em 2em 2em 2em;
+            margin-bottom: 2em;
+            flex: 1 1 520px;
             display: flex;
             flex-direction: column;
-            box-shadow: 1px 2px 6px #ccc;
+            box-shadow: 2px 8px 18px #cdecff;
         }
 
         .host-title {
             font-weight: bold;
-            margin-bottom: 0.5em;
-            font-size: 1.1em;
+            margin-bottom: 1em;
+            font-size: 1.3em;
             color: #256;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
         }
 
         .host-controls {
-            margin-bottom: 0.25em;
+            margin-bottom: 1em;
         }
 
         .host-result {
-            background: #222;
-            color: #e4ffac;
-            font-size: 0.98em;
+            background: #101010;
+            color: #bcecff;
+            font-size: 1.18em;
             flex: 1 1 auto;
-            margin-top: 0.25em;
-            margin-bottom: 0.2em;
-            border-radius: 4px;
-            padding: 0.75em;
+            margin-top: 0.35em;
+            margin-bottom: 0.45em;
+            border-radius: 6px;
+            padding: 1.5em;
             overflow-y: auto;
             white-space: pre;
             /* preserve formatting and alignment */
             font-family: inherit;
-            line-height: 1.25;
-            box-shadow: inset 0 0 4px #111a;
+            line-height: 1.38;
+            box-shadow: inset 0 0 14px #0257;
+            font-weight: 600;
         }
 
         button {
-            font-size: 0.98em;
-            border-radius: 2px;
-            border: 1px solid #abc;
-            background: #e2f0ff;
-            margin-right: 0.3em;
+            font-size: 1.08em;
+            padding: 0.45em 1.1em;
+            border-radius: 6px;
+            border: 2px solid #abc;
+            background: #d8efff;
+            margin-right: 0.7em;
             cursor: pointer;
+            font-family: inherit;
         }
 
         .exit-line {
-            color: #f8e071;
+            color: #ffe984;
+            font-weight: bold;
+            font-size: 1.05em;
+        }
+
+        #hosts {
+            font-size: 1.2em;
+            padding: 0.3em;
+            width: 38em;
+            border-radius: 4px;
+            border: 1px solid #6af;
+            margin-bottom: 0.5em;
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 2em;
         }
     </style>
 </head>
 
 <body>
-    <h2>DBOS Ping Checking</h2>
-    <div>
-        <input id="hosts" type="text" size="50"
+    <h2>DBOS Ping Checking </h2>
+    <div class="controls">
+        <input id="hosts" type="text" size="40"
             placeholder="Enter hosts separated by comma (e.g. 8.8.8.8, google.com)" />
         <button onclick="startMultiPing()">Start Pings</button>
         <button onclick="stopAllPings()">Stop All</button>
@@ -101,7 +139,7 @@
             const div = document.createElement('div');
             div.className = "host-box";
             div.innerHTML = `
-        <div class="host-title">${host}</div>
+        <div class="host-title">🔍 ${host}</div>
         <div class="host-controls">
           <button onclick="window.stopOnePing('${host}')">Stop</button>
         </div>
